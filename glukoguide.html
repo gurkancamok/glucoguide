@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <title>Diyabetik OAD İlaç Bilgileri Kılavuzu</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --danger: #dc2626;
+            --success: #16a34a;
+            --warning: #f59e0b;
+            --bg: #eef4fb;
+            --card-bg: #ffffff;
+        }
+        body {
+            margin: 0; padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg);
+            color: #1e293b;
+        }
+        .header {
+            background: linear-gradient(90deg, #2563eb, #1d4ed8);
+            color: white;
+            padding: 20px 40px;
+            font-size: 22px; font-weight: 600;
+            display: flex; align-items: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .header i { margin-right: 10px; }
+        .container {
+            max-width: 960px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        .summary {
+            background: var(--card-bg);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+            margin-bottom: 20px;
+        }
+        .summary h2 { margin-top: 0; }
+        .select-box {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+            margin-bottom: 20px;
+        }
+        .select-box p { margin: 0 0 10px 0; font-weight: 600; }
+        #ilacSecim {
+            width: 100%; padding: 10px 12px;
+            font-size: 16px; border-radius: 6px;
+            border: 1px solid #d1d5db; background: #ffffff;
+            transition: all 0.3s ease;
+        }
+        #ilacSecim:hover { border-color: var(--primary); }
+        #ilacSecim:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
+        }
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+            padding: 30px;
+        }
+        .ilac-bilgisi {
+            display: none;
+        }
+        .ilac-bilgisi.active {
+            display: block;
+        }
+        .ilac-bilgisi h2 {
+            margin: 0;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e5e7eb;
+            color: var(--danger);
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+        }
+        .ilac-bilgisi h2 i {
+            margin-right: 8px;
+            font-size: 24px;
+        }
+        .ilac-bilgisi h3 {
+            margin-top: 15px;
+            margin-bottom: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            color: #334155;
+        }
+        .yan-etki-liste {
+            padding-left: 20px;
+        }
+        .yan-etki-liste li {
+            margin-bottom: 6px;
+        }
+        .not, .ozel-not {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .not {
+            background: #ecfdf5;
+            color: #115e59;
+            border-left: 4px solid var(--success);
+        }
+        .ozel-not {
+            background: #fff7ed;
+            color: #92400e;
+            border-left: 4px solid var(--warning);
+        }
+        .ozel-not[style*="color:#e74c3c"], .ozel-not[style*="color: #e74c3c"] {
+            background: #fdecea !important;
+            color: #842029 !important;
+            border-left-color: var(--danger) !important;
+        }
+        .qr-container {
+            margin-top: 10px;
+            text-align: center;
+        }
+        .click-counter, .developed-by {
+            position: fixed;
+            bottom: 10px;
+            background: rgba(255,255,255,0.9);
+            color: #1e293b;
+            font-size: 14px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            z-index: 999;
+        }
+        .click-counter { left: 10px; }
+        .developed-by { right: 10px; }
+        @media (max-width: 600px) {
+            .header { flex-direction: column; align-items: flex-start; }
+            .container { padding: 15px; }
+            .select-box, .card { padding: 20px; }
+        }
+        @media print {
+            /* Yazdırma modu: UI öğelerini gizle */
+            .header, .select-box, .click-counter, .developed-by { display: none !important; }
+            body { color: #000; background: #fff; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <i class="fa-solid fa-notes-medical"></i> Diyabetik OAD Klinik Bilgi Paneli
+    </div>
+    <div class="container">
+        <div class="select-box">
+            <p><b>İlaç seçiniz:</b></p>
+            <select id="ilacSecim" onchange="bilgiGoster(this.value)">
+                <option value="none">-- Bir İlaç Seçiniz --</option>
+                <option value="diamicron">DiAMiCRON MR 30 MG - 60 MG (Gliklazid)</option>
+                <option value="forziga">FORZIGA (Dapagliflozin)</option>
+                <option value="glifor">GLİFOR 1000 MG (Metformin)</option>
+                <option value="glucophage">GLUCOPHAGE 1000 MG (Metformin)</option>
+                <option value="janumet">JANUMET 50/500 MG-850 MG-1000 MG (Sitagliptin/Metformin)</option>
+                <option value="januvia">JANUVIA 25 MG-50 MG-100 MG (Sitagliptin)</option>
+                <option value="jardiance10">JARDIANCE 10 MG (Empagliflozin)</option>
+                <option value="jardiance25">JARDIANCE 25 MG (Empagliflozin)</option>
+                <option value="matofin">MATOFİN 1000 MG (Metformin)</option>
+                <option value="synjardy12">SYNJAARDY 12,5/1000 MG (Empagliflozin/Metformin)</option>
+                <option value="synjardy5">SYNJAARDY 5/1000 MG (Empagliflozin/Metformin)</option>
+            </select>
+        </div>
+        <div id="none" class="ilac-bilgisi active">
+            Seçiminizi yaptıktan sonra ilaç bilgileri burada görünecektir.
+        </div>
+        <div id="diamicron" class="ilac-bilgisi">
+            <h2><i class="fa-solid fa-capsules"></i> DiAMiCRON MR 30 MG - 60 MG (Gliklazid)</h2>
+            <h3>Kullanım Şekli ve Dozu:</h3>
+            <ul>
+                <li>**Sabah:** Aç 1 TABLET (Kahvaltıdan Yarım saat önce tüketilmesi önerilir)</li>
+            </ul>
+            <h3>Yan Etkiler:</h3>
+            <ul class="yan-etki-liste">
+                <li>**Hipoglisemi (Kan Şekerinin Düşmesi)**</li>
+            </ul>
+            <p class="ozel-not" style="color:#e74c3c; background-color: #fcecec;">
+                **HİPOGLİSEMİ UYARISI:** Kan şekerini düşürme riski yüksektir. Şeker düşmesi belirtisi hissederseniz hemen şekerli bir şey yiyip/içiniz.
+            </p>
+            <div class="qr-container" id="qr_diamicron" aria-label="QR kod"></div>
+        </div>
+        <div id="forziga" class="ilac-bilgisi">
+            <h2><i class="fa-solid fa-capsules"></i> FORZIGA (Dapagliflozin)</h2>
+            <h3>Kullanım Şekli ve Dozu:</h3>
+            <ul>
+                <li>**Öğlen:** Aç veya Tok 1 TABLET</li>
+            </ul>
+            <h3>Yan Etkiler:</h3>
+            <ul class="yan-etki-liste">
+                <li>İdrar Yolu Enfeksiyonu</li>
+            </ul>
+            <p class="not">**NOT:** Bol sıvı tüketimine dikkat edilmelidir.</p>
+            <p class="ozel-not">**ÖZEL UYARI:** İdrar tahlilinde **glukoz +3-4 pozitif** çıkabilir.</p>
+            <div class="qr-container" id="qr_forziga" aria-label="QR kod"></div>
+        </div>
+        <div id="glifor" class="ilac-bilgisi">
+            <h2><i class="fa-solid fa-capsules"></i> GLİFOR 1000 MG (Metformin)</h2>
+            <h3>Kullanım Şekli ve Dozu:</h3>
+            <ul>
+                <li>**Standart Doz:** Sabah tok 1 TABLET, akşam tok 1 TABLET</li>
+            </ul>
+            <h3>Yan Etkiler:</h3>
+            <ul class="yan-etki-liste">
+                <li>Karın Ağrısı</li>
+                <li>Kusma</li>
+                <li>İshal</li>
+                <li>Mide Bulantısı</li>
+            </ul>
+            <div class="qr-container" id="qr_glifor" aria-label="QR kod"></div>
+        </div>
+        <div id="glucophage" class="ilac-bilgisi">
+            <h2><i class="fa-solid fa-capsules"></i> GLUCOPHAGE 1000 MG (Metformin)</h2>
+            <h3>Kullanım Şekli ve Dozu:</h3>
+            <ul>
+                <li>**Sabah:** Tok 1 TABLET</li>
+                <li>**Akşam:** Tok 1 TABLET</li>
+            </ul>
+            <h3>Yan Etkiler:</h3>
+            <ul class="yan-etki-liste">
+                <li>Karın Ağrısı</li>
+                <li>Kusma</li>
+                <li>İshal</li>
+                <li>Mide Bulantısı</li>
+            </ul>
+            <div class="qr-container" id="qr_glucophage" aria-label="QR kod"></div>
+        </div>
+        <div id="janumet" class="ilac-bilgisi">
+            <h2><i class="fa-solid fa-capsules"></i> JANUMET 50/500 MG-850 MG-1000 MG (Sitagliptin/Metformin)</h2>
+            <h3>Kullanım Şekli ve Dozu:</h3>
+            <ul>
+                <li>**Sabah:** Tok 1 TABLET</li>
+                <li>**Akşam:** Tok 1 TABLET</li>
+            </ul>
+            <h3>Yan Etkiler:</h3>
+            <ul class="yan-etki-liste">
+                <li>Karın Ağrısı</li>
+                <li>Kusma</li>
+                <li>İshal</li>
+                <li>Mide Bulantısı</li>
+                <li>**Pankreatit** ( Pankreatit: Pankreas iltihaplanmasıdır, şiddetli karın ağrı ile belirti gösterir, en yakın sağlık kuruluşuna başvurulması gerekir )</li>
+            </ul>
+            <p class="not" style="color:#8e44ad; background-color: #f3e9f8;">
+                **BİLGİ:** Sitagliptin (DPP-4) ve Metformin kombinasyonudur.
+            </p>
+            <div class="qr-container" id="qr_janumet" aria-label="QR kod"></div>
+        </div>
+        <div id="januvia" class="ilac-bilgisi">
+            <h2><i class="fa-solid fa-capsules"></i> JANUVIA 25 MG-50 MG-100 MG (Sitagliptin)</h2>
+            <h3>Kullanım Şekli ve Dozu:</h3>
+            <ul>
+                <li>**Sabah:** Tok 1 TABLET</li>
+            </ul>
+            <h3>Yan Etkiler:</h3>
+            <ul class="yan-etki-liste">
+                <li>Karın Ağrısı</li>
+                <li>Kusma</li>
+                <li>İshal</li>
+                <li>Mide Bulantısı</li>
+            </ul>
+            <p class="not" style="color:#2ecc71; background-color: #e8f5e9;">
+                **BİLGİ:** DPP-4 İnhibitörü sınıfındadır.
+            </p>
+            <div class="qr-container" id="qr_januvia" aria-label="QR kod"></div>
+        </div>
+        <div id="jardiance10" class="ilac-bilgisi">
+            <h2><i class="fa-solid fa-capsules"></i> JARDIANCE 10 MG (Empagliflozin)</h2>
+            <h3>Kullanım Şekli ve Dozu:</h3>
+            <ul>
+                <li>**Sabah:** Tok 1 TABLET</li>
+            </ul>
+            <h3>Yan Etkiler:</h3>
+            <ul class="yan-etki-liste">
+                <li>İdrar Yolu Enfeksiyonu</li>
+            </ul>
+            <p class="not">**ÖNEMLİ NOT:** Günde en az **2,5 Litre Su** içilmesi gerekmektedir.</p>
+            <p class="ozel-not">**ÖZEL UYARI:** İdrar tahlilinde **glukoz +3-4 pozitif** çıkabilir.</p>
+            <div class="qr-container" id="qr_jardiance10" aria-label="QR kod"></div>
+        </div>
+        <div id="jardiance25" class="ilac-bilgisi">
+            <h2><i class="fa-solid fa-capsules"></i> JARDIANCE 25 MG (Empagliflozin)</h2>
+            <h3>Kullanım Şekli ve Dozu:</h3>
+            <ul>
+                <li>**Sabah:** Tok 1 TABLET</li>
+            </ul>
+            <h3>Yan Etkiler:</h3>
+            <ul class="yan-etki-liste">
+                <li>İdrar Yolu Enfeksiyonu</li>
+            </ul>
+            <p class="not">**ÖNEMLİ NOT:** Günde en az **2,5 Litre Su** içilmesi gerekmektedir.</p>
+            <div class="qr-container" id="qr_jardiance25" aria-label="QR kod"></div>
+        </div>
+        <div id="matofin" class="ilac-bilgisi">
+            <h2><i class="fa-solid fa-capsules"></i> MATOFİN 500 MG - 850 MG - 1000 MG (Metformin)</h2>
+            <h3>Kullanım Şekli ve Dozu:</h3>
+            <ul>
+                <li>**Sabah:** Tok 1 TABLET</li>
+                <li>**Akşam:** Tok 1 TABLET</li>
+            </ul>
+            <h3>Yan Etkiler:</h3>
+            <ul class="yan-etki-liste">
+                <li>Karın Ağrısı</li>
+                <li>Kusma</li>
+                <li>İshal</li>
+                <li>Mide Bulantısı</li>
+            </ul>
+            <div class="qr-container" id="qr_matofin" aria-label="QR kod"></div>
+        </div>
+        <div id="synjardy12" class="ilac-bilgisi">
+            <h2><i class="fa-solid fa-capsules"></i> SYNJAARDY 12,5/1000 MG (Empagliflozin/Metformin)</h2>
+            <h3>Kullanım Şekli ve Dozu:</h3>
+            <ul>
+                <li>**Sabah:** Tok 1 TABLET</li>
+                <li>**Akşam:** Tok 1 TABLET</li>
+            </ul>
+            <h3>Yan Etkiler:</h3>
+            <ul class="yan-etki-liste">
+                <li>Karın Ağrısı, Kusma, İshal, Mide Bulantısı</li>
+                <li>İdrar Yolu Enfeksiyonu</li>
+            </ul>
+            <p class="not">**BİLGİ:** Bol sıvı tüketimine (en az 2.5 Lt su) dikkat edilmelidir.</p>
+            <div class="qr-container" id="qr_synjardy12" aria-label="QR kod"></div>
+        </div>
+        <div id="synjardy5" class="ilac-bilgisi">
+            <h2><i class="fa-solid fa-capsules"></i> SYNJAARDY 5/1000 MG (Empagliflozin/Metformin)</h2>
+            <h3>Kullanım Şekli ve Dozu:</h3>
+            <ul>
+                <li>**Sabah:** Tok 1 TABLET</li>
+                <li>**Akşam:** Tok 1 TABLET</li>
+            </ul>
+            <h3>Yan Etkiler:</h3>
+            <ul class="yan-etki-liste">
+                <li>Karın Ağrısı, Kusma, İshal, Mide Bulantısı</li>
+                <li>İdrar Yolu Enfeksiyonu</li>
+            </ul>
+            <p class="not">**ÖNEMLİ NOT:** Günde en az **2,5 Litre Su** içilmesi gerekmektedir.</p>
+            <div class="qr-container" id="qr_synjardy5" aria-label="QR kod"></div>
+        </div>
+  <!-- Kullanıcı isteğine göre eklenen uyarı -->
+        <p class="uyari">⚠️ Bu içerik yalnızca bilgilendirme amaçlıdır. Tanı ve tedavi için doktorunuza danışınız.</p>
+    </div>
+    <div class="click-counter">Tıklama: <span id="clickCount">0</span></div>
+    <div class="developed-by">Developed by Gürkan ÇAMOK</div>
+    <script>
+        function bilgiGoster(ilacId) {
+            document.querySelectorAll('.ilac-bilgisi').forEach(div => div.style.display = 'none');
+            const secilenBilgi = document.getElementById(ilacId);
+            if (secilenBilgi) {
+                secilenBilgi.style.display = 'block';
+                secilenBilgi.classList.add('active');
+            }
+        }
+        // Tıklama sayacını ayarla
+        let clickCount = sessionStorage.getItem('clickCount') || 0;
+        document.getElementById('clickCount').textContent = clickCount;
+        document.addEventListener('click', function() {
+            clickCount++;
+            sessionStorage.setItem('clickCount', clickCount);
+            document.getElementById('clickCount').textContent = clickCount;
+        });
+        // QR kodları oluştur
+        var drugIds = ["diamicron","forziga","glifor","glucophage","janumet","januvia","jardiance10","jardiance25","matofin","synjardy12","synjardy5"];
+        drugIds.forEach(function(id) {
+            var qrContainer = document.getElementById("qr_" + id);
+            if (qrContainer) {
+                new QRCode(qrContainer, {
+                    text: window.location.href.split("#")[0] + "#" + id,
+                    width: 120,
+                    height: 120
+                });
+                // Resim alt metni ekle
+                var img = qrContainer.querySelector("img");
+                if (img) img.alt = "QR kod: " + id;
+            }
+        });
+    </script>
+</body>
+</html>
