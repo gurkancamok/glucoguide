@@ -71,7 +71,7 @@ Planned improvements include:
 ## 👨‍⚕️ Developed By
 
 **Gürkan ÇAMOK**
-Clinical Nurse | Digital Health Developer
+Digital Health Developer
 
 ---
 
