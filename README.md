@@ -2,6 +2,11 @@
 
 A digital clinical support system designed to improve diabetes medication safety, standardize patient education, and provide accessible, real-time medication guidance.
 
+## 🌐 Live Demo
+
+Access the platform here:  
+👉 https://gurkancamok.github.io/glucoguide/
+
 ---
 
 ## 🔍 Overview
